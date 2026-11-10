@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>زوم تک فناوری از نزدیک</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --primary:#e11d2e; --primary-dark:#b31423;
+    --bg:#f4f5f7; --white:#fff; --dark:#15181c;
+    --text:#2b2f36; --muted:#8a8f98; --line:#e6e8ec;
+    --radius:14px;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Vazirmatn',Tahoma,sans-serif;
+    background:var(--bg); color:var(--text);
+    padding-top:78px; line-height:1.9; min-height:100vh;
+    display:flex; flex-direction:column;
+  }
+  a{color:inherit}
+
+  /* ---------- Loader ---------- */
+  #loader{
+    position:fixed; inset:0; background:#fff; z-index:9999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; transition:opacity .5s ease;
+  }
+  #loader.hide{opacity:0; pointer-events:none}
+  .loader-logo{width:72px;height:72px;border-radius:16px;object-fit:cover;box-shadow:0 6px 20px rgba(225,29,46,.25)}
+  .spinner{
+    width:44px;height:44px;border-radius:50%;
+    border:4px solid #eee; border-top-color:var(--primary);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loader-text{font-weight:800;color:var(--primary);font-size:16px}
+
+  /* ---------- Header ---------- */
+  header.site-header{
+    position:fixed; top:0; right:0; left:0; height:78px;
+    background:var(--white); box-shadow:0 2px 14px rgba(0,0,0,.07);
+    z-index:100; display:flex; align-items:center;
+  }
+  .header-inner{
+    max-width:1240px; margin:0 auto; padding:0 20px; width:100%;
+    display:flex; align-items:center; gap:14px;
+  }
+  .logo{height:52px;width:52px;border-radius:12px;object-fit:cover;cursor:pointer;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.12)}
+  .brand{min-width:0}
+  .site-title{font-weight:800;font-size:18px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .site-tagline{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  nav.main-nav{
+    margin-right:auto;display:flex;gap:4px;flex-wrap:nowrap;
+    overflow-x:auto; scrollbar-width:none;
+  }
+  nav.main-nav::-webkit-scrollbar{display:none}
+  nav.main-nav a{
+    padding:9px 15px;border-radius:10px;text-decoration:none;
+    font-weight:600;font-size:14px;color:var(--text);white-space:nowrap;
+    transition:.2s;
+  }
+  nav.main-nav a:hover{background:#f1f3f6;color:var(--primary)}
+
+  /* ---------- Layout ---------- */
+  .container{max-width:1240px;margin:0 auto;padding:26px 20px;width:100%;flex:1}
+  .hero{
+    background:linear-gradient(120deg,#15181c,#2a2f38 55%,#e11d2e);
+    border-radius:22px;color:#fff;padding:38px 30px;margin-bottom:26px;
+    box-shadow:0 12px 30px rgba(21,24,28,.2);
+  }
+  .hero h1{font-size:28px;margin-bottom:8px}
+  .hero p{color:#dfe3ea;font-size:15px}
+  .section-head{display:flex;align-items:center;gap:10px;margin:0 0 16px}
+  .section-head h2{font-size:20px}
+  .section-head::before{content:"";width:6px;height:24px;border-radius:4px;background:var(--primary)}
+
+  /* ---------- Posts ---------- */
+  .posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+  .post-card{
+    background:var(--white);border-radius:var(--radius);overflow:hidden;
+    box-shadow:0 3px 12px rgba(0,0,0,.05);cursor:pointer;transition:.22s;
+    display:flex;flex-direction:column;
+  }
+  .post-card:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(0,0,0,.12)}
+  .post-card img{width:100%;height:180px;object-fit:cover;display:block;background:#eee}
+  .post-card .body{padding:16px}
+  .cat{color:var(--primary);font-size:12px;font-weight:800;letter-spacing:.2px}
+  .post-card h3{font-size:16px;margin:8px 0;line-height:1.6}
+  .post-card p{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* ---------- Single post ---------- */
+  .single-post{background:var(--white);border-radius:var(--radius);padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.05)}
+  .back-link{display:inline-block;margin-bottom:16px;color:var(--primary);text-decoration:none;font-weight:700;font-size:14px}
+  .single-post h1{font-size:26px;margin:6px 0 6px}
+  .single-post .meta{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .single-post .post-img{width:100%;max-height:460px;object-fit:cover;border-radius:12px;margin-bottom:22px;background:#eee}
+  .post-content{font-size:15.5px;line-height:2.1}
+  .post-content p{margin:0 0 14px}
+  .post-content img{max-width:100%;border-radius:10px}
+
+  /* ---------- Admin ---------- */
+  .login-box{
+    max-width:420px;margin:60px auto;background:#fff;padding:32px;
+    border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center;
+  }
+  .login-box h2{margin-bottom:20px;font-size:20px}
+  .admin-panel{max-width:900px;margin:0 auto}
+  .admin-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+  .admin-head h2{font-size:22px}
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .tab{
+    background:#fff;border:1px solid var(--line);padding:9px 18px;border-radius:10px;
+    cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:var(--text);
+  }
+  .tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .card{background:#fff;border-radius:var(--radius);padding:22px;margin-bottom:18px;box-shadow:0 3px 12px rgba(0,0,0,.05)}
+  .card h3{font-size:16px;margin-bottom:14px;border-bottom:1px solid var(--line);padding-bottom:10px}
+  label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px;color:#444}
+  input,textarea{
+    width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;
+    font-family:inherit;font-size:14px;background:#fafbfc;transition:.2s;
+  }
+  input:focus,textarea:focus{outline:none;border-color:var(--primary);background:#fff}
+  textarea{resize:vertical;line-height:1.8}
+  .btn{
+    display:inline-block;padding:10px 20px;border-radius:10px;border:none;
+    background:#eef0f3;color:var(--text);font-family:inherit;font-weight:700;font-size:14px;
+    cursor:pointer;margin-top:14px;transition:.2s;text-decoration:none;
+  }
+  .btn:hover{filter:brightness(.95)}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.primary:hover{background:var(--primary-dark)}
+  .btn.danger{background:#ffe9eb;color:#c1121f}
+  .btn.sm{padding:6px 12px;font-size:12px;margin-top:0}
+  .list-item{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:11px 4px;border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap;
+  }
+  .list-item:last-child{border-bottom:none}
+  .logo-preview{width:72px;height:72px;border-radius:12px;object-fit:cover;margin-top:12px;background:#eee;border:1px solid var(--line)}
+  .hint{font-size:12px;color:var(--muted);margin-top:12px}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* ---------- Footer ---------- */
+  footer{background:var(--dark);color:#c7ccd4;padding:34px 20px 22px;margin-top:40px}
+  .footer-inner{
+    max-width:1240px;margin:0 auto;display:flex;justify-content:space-between;
+    align-items:center;flex-wrap:wrap;gap:12px;font-size:14px;
+  }
+  .footer-inner a{text-decoration:none;color:#9aa1ac;font-size:13px}
+  .footer-inner a:hover{color:#fff}
+  .credit{
+    max-width:1240px;margin:20px auto 0;padding-top:16px;border-top:1px solid #2a2f38;
+    text-align:center;font-size:13.5px;color:#9aa1ac;font-weight:600;
+  }
+  .credit b{color:#fff;font-weight:800}
+
+  @media(max-width:768px){
+    .site-tagline{display:none}
+    .site-title{font-size:15px}
+    .header-inner{padding:0 14px;gap:10px}
+    .logo{height:44px;width:44px}
+    body{padding-top:72px}
+    header.site-header{height:72px}
+    .hero{padding:28px 20px}
+    .hero h1{font-size:22px}
+    .single-post{padding:20px}
+    .single-post h1{font-size:21px}
+  }
+</style>
+</head>
+<body>
+
+<!-- صفحه لود -->
+<div id="loader">
+  <img class="loader-logo" id="loaderLogo" src="https://picsum.photos/seed/zoomtechlogo/120/120" alt="logo">
+  <div class="spinner"></div>
+  <div class="loader-text" id="loaderText">زوم تک فناوری از نزدیک</div>
+</div>
+
+<!-- هدر ثابت -->
+<header class="site-header" id="siteHeader"></header>
+
+<!-- محتوای اصلی -->
+<main class="container" id="app"></main>
+
+<!-- فوتر -->
+<footer id="siteFooter"></footer>
+
+<script>
+/* ============================================================
+   بلاگ «زوم تک فناوری از نزدیک»
+   طراحی و ساخت: محمدسامیارآسپنون
+   ============================================================ */
+
+const STORAGE_KEY = 'zoomtech_data_v1';
+
+/* --- ابزار --- */
+function uid(){
+  return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-3);
+}
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function faDate(){
+  try{ return new Date().toLocaleDateString('fa-IR'); }
+  catch(e){ return new Date().toLocaleDateString(); }
+}
+
+/* --- داده‌های پیش‌فرض --- */
+function defaultData(){
+  return {
+    settings:{
+      siteName:'زوم تک فناوری از نزدیک',
+      tagline:'اخبار، بررسی و آموزش دنیای فناوری',
+      logo:'https://picsum.photos/seed/zoomtechlogo/120/120',
+      password:'admin123'
+    },
+    menu:[
+      {id:uid(), title:'خانه', link:'#home'},
+      {id:uid(), title:'اخبار فناوری', link:'#home'},
+      {id:uid(), title:'بررسی گجت', link:'#home'},
+      {id:uid(), title:'آموزش', link:'#home'}
+    ],
+    posts:[
+      {
+        id:uid(),
+        title:'معرفی جدیدترین گوشی پرچم‌دار سال ۲۰۲۵',
+        category:'اخبار',
+        image:'https://picsum.photos/seed/phone1/800/450',
+        excerpt:'نگاهی نزدیک به مشخصات، دوربین و باتری گوشی پرچم‌داری که این روزها همه از آن حرف می‌زنند.',
+        content:'<p>در این مطلب به بررسی کامل مشخصات فنی، طراحی، دوربین و باتری جدیدترین گوشی پرچم‌دار بازار می‌پردازیم.</p><p>این گوشی با نمایشگر AMOLED ۱۲۰ هرتزی و پردازنده نسل جدید، تجربه‌ای روان از کار با اپلیکیشن‌ها ارائه می‌دهد. سیستم دوربین سه‌گانه آن نیز در نور کم عملکرد بسیار خوبی دارد.</p><p>باتری ۵۰۰۰ میلی‌آمپری و شارژ سریع ۶۵ واتی از دیگر ویژگی‌های قابل توجه این دستگاه است.</p>',
+        date: faDate()
+      },
+      {
+        id:uid(),
+        title:'بررسی لپ‌تاپ میان‌رده برای کار و دانشجویی',
+        category:'بررسی',
+        image:'https://picsum.photos/seed/laptop1/800/450',
+        excerpt:'آیا این لپ‌تاپ ارزش خرید دارد؟ در این بررسی به سراغ عملکرد، صفحه‌نمایش و باتری می‌رویم.',
+        content:'<p>لپ‌تاپ‌های میان‌رده امروز با قیمتی منطقی، عملکردی بسیار نزدیک به مدل‌های گران‌قیمت ارائه می‌دهند.</p><p>در این بررسی مدلی را امتحان کردیم که با پردازنده ۸ هسته‌ای، ۱۶ گیگابایت رم و SSD نیم‌ترابایتی، گزینه‌ای مناسب برای دانشجویان و کاربران اداری است.</p><p>صفحه‌نمایش ۱۴ اینچی با پوشش ۱۰۰٪ sRGB رنگ‌ها را خوب نمایش می‌دهد و باتری تا ۹ ساعت دوام می‌آورد.</p>',
+        date: faDate()
+      },
+      {
+        id:uid(),
+        title:'هوش مصنوعی چگونه زندگی روزمره را متحول می‌کند؟',
+        category:'فناوری',
+        image:'https://picsum.photos/seed/ai1/800/450',
+        excerpt:'از دستیارهای صوتی تا خودروهای خودران؛ مروری بر کاربردهای واقعی هوش مصنوعی.',
+        content:'<p>هوش مصنوعی امروز دیگر فقط یک مفهوم علمی‌تخیلی نیست؛ در گوشی، خانه و خودروی ما حضور دارد.</p><p>دستیارهای صوتی، پیشنهاددهنده‌های محتوا، ترجمه همزمان و حتی تشخیص بیماری از روی تصویر، نمونه‌هایی از کاربردهای روزمره آن هستند.</p><p>در سال‌های آینده شاهد نسل جدیدی از دستگاه‌های هوشمند خواهیم بود که بدون نیاز به دستور مستقیم، نیازهای ما را پیش‌بینی می‌کنند.</p>',
+        date: faDate()
+      },
+      {
+        id:uid(),
+        title:'راهنمای خرید هدفون بی‌سیم مناسب',
+        category:'آموزش',
+        image:'https://picsum.photos/seed/headphone1/800/450',
+        excerpt:'قبل از خرید هدفون بی‌سیم به این نکات مهم توجه کنید تا انتخاب بهتری داشته باشید.',
+        content:'<p>هدفون‌های بی‌سیم امروز در مدل‌های متنوعی عرضه می‌شوند. مهم‌ترین فاکتورها هنگام خرید عبارت‌اند از: کیفیت صدا، عمر باتری، راحتی و قابلیت حذف نویز.</p><p>اگر بیشتر در محیط شلوغ استفاده می‌کنید، مدل‌های دارای ANC (حذف فعال نویز) انتخاب بهتری هستند.</p>',
+        date: faDate()
+      },
+      {
+        id:uid(),
+        title:'ساعت هوشمند؛ گجتی که سلامتی را رصد می‌کند',
+        category:'گجت',
+        image:'https://picsum.photos/seed/watch1/800/450',
+        excerpt:'بررسی قابلیت‌های سلامتی و ورزشی ساعت‌های هوشمند نسل جدید.',
+        content:'<p>ساعت‌های هوشمند امروز با حسگرهای پیشرفته، ضربان قلب، اکسیژن خون، کیفیت خواب و سطح استرس را اندازه‌گیری می‌کنند.</p><p>این داده‌ها می‌توانند به کاربر کمک کنند سبک زندگی سالم‌تری داشته باشد.</p>',
+        date: faDate()
+      },
+      {
+        id:uid(),
+        title:'امنیت آنلاین؛ ۷ نکته‌ای که باید بدانید',
+        category:'امنیت',
+        image:'https://picsum.photos/seed/security1/800/450',
+        excerpt:'با رعایت این نکات ساده، امنیت حساب‌های کاربری و اطلاعات شخصی خود را بالا ببرید.',
+        content:'<p>استفاده از رمز عبور قوی و منحصربه‌فرد برای هر حساب، فعال‌سازی تأیید دو مرحله‌ای، و به‌روز نگه‌داشتن سیستم‌عامل از مهم‌ترین اقدامات امنیتی هستند.</p><p>هرگز روی لینک‌های ناشناس کلیک نکنید و از دانلود برنامه از منابع غیررسمی خودداری کنید.</p>',
+        date: faDate()
+      }
+    ]
+  };
+}
+
+/* --- ذخیره / بارگذاری --- */
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultData();
+    const d = JSON.parse(raw);
+    // اطمینان از وجود فیلدها
+    if(!d.settings) d.settings = defaultData().settings;
+    if(!Array.isArray(d.menu)) d.menu = [];
+    if(!Array.isArray(d.posts)) d.posts = [];
+    if(!d.settings.password) d.settings.password = 'admin123';
+    return d;
+  }catch(e){
+    return defaultData();
+  }
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/* --- وضعیت --- */
+let state = null;
+let editingPostId = null;
+const app = document.getElementById('app');
+
+/* --- رندر هدر --- */
+function renderHeader(){
+  const s = state.settings;
+  document.getElementById('siteHeader').innerHTML = `
+    <div class="header-inner">
+      <img class="logo" src="${esc(s.logo)}" alt="لوگو" onclick="location.hash='#home'"
+           onerror="this.src='https://picsum.photos/seed/fallback/80/80'">
+      <div class="brand">
+        <div class="site-title">${esc(s.siteName)}</div>
+        <div class="site-tagline">${esc(s.tagline)}</div>
+      </div>
+      <nav class="main-nav">
+        ${state.menu.map(m => `<a href="${esc(m.link)}">${esc(m.title)}</a>`).join('')}
+      </nav>
+    </div>`;
+}
+
+/* --- رندر فوتر (با امضای ثابت) --- */
+function renderFooter(){
+  document.getElementById('siteFooter').innerHTML = `
+    <div class="footer-inner">
+      <div>© ${new Date().getFullYear()} ${esc(state.settings.siteName)}</div>
+      <a href="#admin">پنل مدیریت</a>
+    </div>
+    <div class="credit">طراحی و ساخت: <b>محمدسامیارآسپنون</b></div>`;
+}
+
+/* --- صفحه اصلی --- */
+function renderHome(){
+  const posts = state.posts;
+  app.innerHTML = `
+    <section class="hero">
+      <h1>${esc(state.settings.siteName)}</h1>
+      <p>${esc(state.settings.tagline)}</p>
+    </section>
+    <div class="section-head"><h2>آخرین مطالب</h2></div>
+    <div class="posts-grid">
+      ${posts.length ? posts.map(p => `
+        <article class="post-card" onclick="location.hash='#post/${p.id}'">
+          <img src="${esc(p.image)}" alt="${esc(p.title)}" loading="lazy"
+               onerror="this.src='https://picsum.photos/seed/${p.id}/800/450'">
+          <div class="body">
+            <span class="cat">${esc(p.category)}</span>
+            <h3>${esc(p.title)}</h3>
+            <p>${esc(p.excerpt)}</p>
+          </div>
+        </article>`).join('') : '<p class="muted">هنوز مطلبی ثبت نشده است.</p>'}
+    </div>`;
+  window.scrollTo(0,0);
+}
+
+/* --- صفحه مطلب --- */
+function renderPost(id){
+  const p = state.posts.find(x => x.id === id);
+  if(!p){
+    app.innerHTML = `<div class="card"><p>مطلب مورد نظر یافت نشد.</p><a href="#home" class="btn primary">بازگشت به خانه</a></div>`;
+    return;
+  }
+  app.innerHTML = `
+    <article class="single-post">
+      <a href="#home" class="back-link">→ بازگشت به خانه</a>
+      <span class="cat">${esc(p.category)}</span>
+      <h1>${esc(p.title)}</h1>
+      <div class="meta">📅 ${esc(p.date)}</div>
+      <img class="post-img" src="${esc(p.image)}" alt="${esc(p.title)}"
+           onerror="this.src='https://picsum.photos/seed/${p.id}/800/450'">
+      <div class="post-content">${p.content}</div>
+    </article>`;
+  window.scrollTo(0,0);
+}
+
+/* ============================================================
+   پنل مدیریت
+   ============================================================ */
+function renderAdmin(){
+  if(!sessionStorage.getItem('zoomtech_admin')){
+    app.innerHTML = `
+      <div class="login-box">
+        <h2>ورود به پنل مدیریت</h2>
+        <input type="password" id="adminPass" placeholder="رمز عبور" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="btn primary" style="width:100%" onclick="doLogin()">ورود</button>
+        <p class="hint">رمز پیش‌فرض: <b>admin123</b></p>
+      </div>`;
+    return;
+  }
+
+  app.innerHTML = `
+    <div class="admin-panel">
+      <div class="admin-head">
+        <h2>پنل مدیریت</h2>
+        <div>
+          <a href="#home" class="btn">مشاهده سایت</a>
+          <button class="btn danger" onclick="logout()">خروج</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="settings" onclick="switchTab('settings')">تنظیمات سایت</button>
+        <button class="tab" data-tab="menu" onclick="switchTab('menu')">منوی سایت</button>
+        <button class="tab" data-tab="posts" onclick="switchTab('posts')">مطالب</button>
+      </div>
+      <div id="adminTabContent"></div>
+    </div>`;
+  renderAdminTab('settings');
+  window.scrollTo(0,0);
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const target = document.querySelector(`.tab[data-tab="${tab}"]`);
+  if(target) target.classList.add('active');
+  renderAdminTab(tab);
+}
+
+function renderAdminTab(tab){
+  const el = document.getElementById('adminTabContent');
+  if(tab === 'settings') el.innerHTML = settingsTabHTML();
+  else if(tab === 'menu') el.innerHTML = menuTabHTML();
+  else if(tab === 'posts') el.innerHTML = postsTabHTML();
+}
+
+/* --- تب تنظیمات --- */
+function settingsTabHTML(){
+  const s = state.settings;
+  return `
+    <div class="card">
+      <h3>تنظیمات سایت</h3>
+      <label>نام سایت</label>
+      <input id="setName" value="${esc(s.siteName)}">
+
+      <label>شعار سایت</label>
+      <input id="setTagline" value="${esc(s.tagline)}">
+
+      <label>آدرس تصویر لوگو (URL)</label>
+      <input id="setLogo" value="${esc(s.logo)}" oninput="previewLogo(this.value)">
+      <img id="logoPreview" class="logo-preview" src="${esc(s.logo)}"
+           onerror="this.src='https://picsum.photos/seed/fallback/80/80'">
+
+      <label>رمز عبور پنل مدیریت</label>
+      <input id="setPass" value="${esc(s.password)}">
+
+      <button class="btn primary" onclick="saveSettings()">💾 ذخیره تنظیمات</button>
+    </div>`;
+}
+
+function previewLogo(url){
+  const img = document.getElementById('logoPreview');
+  if(img) img.src = url || 'https://picsum.photos/seed/fallback/80/80';
+}
+
+function saveSettings(){
+  state.settings.siteName = document.getElementById('setName').value.trim() || 'بدون نام';
+  state.settings.tagline  = document.getElementById('setTagline').value.trim();
+  state.settings.logo     = document.getElementById('setLogo').value.trim() || 'https://picsum.photos/seed/fallback/80/80';
+  const pass = document.getElementById('setPass').value.trim();
+  state.settings.password = pass || 'admin123';
+  saveData();
+  renderHeader();
+  renderFooter();
+  updateLoaderBrand();
+  alert('✅ تنظیمات با موفقیت ذخیره شد.');
+}
+
+/* --- تب منو --- */
+function menuTabHTML(){
+  return `
+    <div class="card">
+      <h3>افزودن گزینه به منو</h3>
+      <label>عنوان گزینه</label>
+      <input id="menuTitle" placeholder="مثلاً: اخبار">
+      <label>لینک</label>
+      <input id="menuLink" value="#home" placeholder="#home یا آدرس صفحه">
+      <button class="btn primary" onclick="addMenuItem()">➕ افزودن</button>
+    </div>
+    <div class="card">
+      <h3>گزینه‌های فعلی منو</h3>
+      ${state.menu.length ? state.menu.map(m => `
+        <div class="list-item">
+          <span><b>${esc(m.title)}</b> &nbsp;→&nbsp; <span class="muted">${esc(m.link)}</span></span>
+          <div>
+            <button class="btn sm" onclick="editMenuItem('${m.id}')">ویرایش</button>
+            <button class="btn danger sm" onclick="deleteMenuItem('${m.id}')">حذف</button>
+          </div>
+        </div>`).join('') : '<p class="muted">منویی ثبت نشده است.</p>'}
+    </div>`;
+}
+
+function addMenuItem(){
+  const title = document.getElementById('menuTitle').value.trim();
+  const link  = document.getElementById('menuLink').value.trim() || '#home';
+  if(!title){ alert('عنوان گزینه را وارد کنید.'); return; }
+  state.menu.push({id:uid(), title, link});
+  saveData(); renderHeader(); renderAdminTab('menu');
+}
+
+function editMenuItem(id){
+  const m = state.menu.find(x => x.id === id);
+  if(!m) return;
+  const title = prompt('عنوان جدید:', m.title);
+  if(title === null) return;
+  const link = prompt('لینک جدید:', m.link);
+  if(link === null) return;
+  m.title = title.trim() || m.title;
+  m.link  = link.trim() || m.link;
+  saveData(); renderHeader(); renderAdminTab('menu');
+}
+
+function deleteMenuItem(id){
+  if(!confirm('این گزینه منو حذف شود؟')) return;
+  state.menu = state.menu.filter(m => m.id !== id);
+  saveData(); renderHeader(); renderAdminTab('menu');
+}
+
+/* --- تب مطالب --- */
+function postsTabHTML(){
+  const editing = editingPostId ? state.posts.find(p => p.id === editingPostId) : null;
+  return `
+    <div class="card">
+      <h3>${editing ? '✏️ ویرایش مطلب' : '➕ افزودن مطلب جدید'}</h3>
+      <label>عنوان مطلب</label>
+      <input id="pTitle" value="${esc(editing ? editing.title : '')}">
+
+      <label>دسته‌بندی</label>
+      <input id="pCat" value="${esc(editing ? editing.category : '')}" placeholder="مثلاً: اخبار">
+
+      <label>آدرس تصویر (از اینترنت یا هر URL)</label>
+      <input id="pImage" value="${esc(editing ? editing.image : '')}" placeholder="https://...">
+      <p class="hint">اگر خالی بگذارید، یک تصویر خودکار از اینترنت انتخاب می‌شود.</p>
+
+      <label>خلاصه مطلب</label>
+      <textarea id="pExcerpt" rows="2">${esc(editing ? editing.excerpt : '')}</textarea>
+
+      <label>متن کامل مطلب (تگ HTML مجاز است)</label>
+      <textarea id="pContent" rows="8" placeholder="<p>متن شما...</p>">${esc(editing ? editing.content : '')}</textarea>
+
+      <button class="btn primary" onclick="savePost()">${editing ? '💾 ذخیره تغییرات' : '➕ افزودن مطلب'}</button>
+      ${editing ? '<button class="btn" onclick="cancelEdit()">انصراف</button>' : ''}
+    </div>
+
+    <div class="card">
+      <h3>لیست مطالب (${state.posts.length})</h3>
+      ${state.posts.length ? state.posts.map(p => `
+        <div class="list-item">
+          <span><b>${esc(p.title)}</b> <span class="muted">— ${esc(p.category)} — ${esc(p.date)}</span></span>
+          <div>
+            <button class="btn sm" onclick="editPost('${p.id}')">ویرایش</button>
+            <button class="btn danger sm" onclick="deletePost('${p.id}')">حذف</button>
+          </div>
+        </div>`).join('') : '<p class="muted">هنوز مطلبی ثبت نشده است.</p>'}
+    </div>`;
+}
+
+function savePost(){
+  const title = document.getElementById('pTitle').value.trim();
+  if(!title){ alert('عنوان مطلب الزامی است.'); return; }
+  const data = {
+    title,
+    category: document.getElementById('pCat').value.trim() || 'عمومی',
+    image: document.getElementById('pImage').value.trim() || ('https://picsum.photos/seed/' + uid() + '/800/450'),
+    excerpt: document.getElementById('pExcerpt').value.trim(),
+    content: document.getElementById('pContent').value.trim() || '<p>متن مطلب در دسترس نیست.</p>'
+  };
+  if(editingPostId){
+    const p = state.posts.find(x => x.id === editingPostId);
+    if(p) Object.assign(p, data);
+    editingPostId = null;
+  } else {
+    state.posts.unshift({ id: uid(), date: faDate(), ...data });
+  }
+  saveData();
+  renderAdminTab('posts');
+  alert('✅ مطلب ذخیره شد.');
+}
+
+function editPost(id){
+  editingPostId = id;
+  renderAdminTab('posts');
+  window.scrollTo(0,0);
+}
+function cancelEdit(){
+  editingPostId = null;
+  renderAdminTab('posts');
+}
+function deletePost(id){
+  if(!confirm('این مطلب حذف شود؟')) return;
+  state.posts = state.posts.filter(p => p.id !== id);
+  if(editingPostId === id) editingPostId = null;
+  saveData();
+  renderAdminTab('posts');
+}
+
+/* --- ورود / خروج --- */
+function doLogin(){
+  const pass = (document.getElementById('adminPass') || {}).value || '';
+  if(pass === state.settings.password){
+    sessionStorage.setItem('zoomtech_admin','1');
+    renderAdmin();
+  } else {
+    alert('❌ رمز عبور اشتباه است.');
+  }
+}
+function logout(){
+  sessionStorage.removeItem('zoomtech_admin');
+  location.hash = '#home';
+}
+
+/* ============================================================
+   مسیریابی و راه‌اندازی
+   ============================================================ */
+function handleRoute(){
+  const hash = location.hash || '#home';
+  if(hash.startsWith('#post/')){
+    renderPost(hash.slice(6));
+  } else if(hash === '#admin'){
+    renderAdmin();
+  } else {
+    renderHome();
+  }
+}
+
+function updateLoaderBrand(){
+  const l = document.getElementById('loaderLogo');
+  const t = document.getElementById('loaderText');
+  if(l) l.src = state.settings.logo;
+  if(t) t.textContent = state.settings.siteName;
+}
+
+function init(){
+  state = loadData();
+  renderHeader();
+  renderFooter();
+  updateLoaderBrand();
+  handleRoute();
+  window.addEventListener('hashchange', handleRoute);
+
+  // مخفی کردن صفحه لود
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hide');
+  }, 800);
+}
+
+init();
+</script>
+</body>
+</html>
